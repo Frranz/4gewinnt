@@ -1,0 +1,8 @@
+JSON:
+
+überträgt immer board
+attribute bool: gameOver
+	=> wenn gameOver dann 
+Attribute winner
+youreNext;
+board = >board in 2 dimensionalem array

@@ -1,0 +1,70 @@
+.header{
+	width:100%;
+	height:10%;
+	background-color:orangered;
+	text-align:center;
+}
+
+.header h1{
+	font-size:3em;
+	position: relative;
+	top: 50%;
+	transform: translateY(-50%);
+	color :white;
+}
+
+.body{
+	background-color:#eee;
+	width:100%;
+	height:80%;
+}
+
+.startButton{
+	position:absolute;
+}
+
+.game{
+	position: relative;
+	top: 50%;
+	transform: translateY(-50%);
+	margin:0 auto;
+	width:30%;
+	height:30vw;
+	background-color:white;
+	text-align:center;
+}
+
+.game h1{
+	color:#444;
+}
+
+.boardTable{
+	position:absolute;
+	bottom:0%;
+	width:100%;
+	height:80%;
+	border-color:black;
+}
+
+.stone{
+	width:100%;
+	height:100%;
+	border-radius:50%;
+}
+
+.stoneP0{
+	background-color:lightgrey;
+}
+
+.stoneP1{
+	background-color:orangered;
+}
+
+.stoneP2{
+	
+	background-color:teal;
+}
+
+.columnMarked{
+	background-color:#f2f2f2 ;
+}
