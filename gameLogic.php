@@ -13,11 +13,11 @@
 			$query = "SELECT currentGameId FROM PLAYERS WHERE playerId=".mysqli_real_escape_string($my_db,$_SESSION['playerId']);
 			$result = $my_db->query($query);
 			$result = mysqli_fetch_assoc($result);
-			if($result['currentGameId']==0){
-				createNewGame();
+			if($result['currentGameId']){//==0){
+				echo createNewGame();
 				echo "creating new game";
 			}else{
-				echo "user already i game";
+				echo "user already in game ".$result['currentGameId'];
 			}
 		}else{
 			print_r($my_db->connect_error);
@@ -33,7 +33,6 @@
 		$password = '';
 		$db_name = '4gewinnt';
 		
-		echo $query;
 		$my_db = mysqli_connect($servername,$username,$password,$db_name) or die("db connection konnte nicht hergestellt werden");
 		
 		//add new game to games table
@@ -46,7 +45,7 @@
 		}
 		
 		//get game id from newly created game
-		$getGameId = "SELECT gameId FROM games WHERE playerId=".$_SESSION['playerId'];
+		$getGameId = "SELECT gameId FROM games WHERE player1=".$_SESSION['playerId'];
 		$result = $my_db->query($getGameId);
 		if(!$result){
 			die("getting gameId from newly created game failed");
@@ -55,11 +54,13 @@
 		$result = mysqli_fetch_assoc($result);
 		$gameId = $result['gameId'];
 		
-		$addCurentGameQuery = "UPDATE currentGameId FROM players WHERE playerId=".$_SESSION['playerId'];
+		$addCurentGameQuery = "UPDATE players SET currentGameId=$gameId WHERE playerId=".$_SESSION['playerId'];
 		$result = $my_db->query($addCurentGameQuery);
 		if(!$result){
 			die("failed to update currentGameId in player database");
 		}
 		
+		$retString = "{board:$board,youreNext:-1}";
+		return $retString;
 	}
 ?>
