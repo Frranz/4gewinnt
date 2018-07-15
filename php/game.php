@@ -1,8 +1,8 @@
 <html>
 <head>
 <title>4 gewinnt</title>
-<link rel="stylesheet" href="game.css">
-<script src="game.js"></script>
+<link rel="stylesheet" href="http://localhost/4gewinnt/html/game.css">
+<script src="http://localhost/4gewinnt/html/game.js"></script>
 </head>
 <body>
 	<div class="header">
