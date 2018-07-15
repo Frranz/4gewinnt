@@ -16,6 +16,7 @@
 		</div>
 	</div>
 	<button onclick="test();">test</button>
+	<button onclick="test2();">test2</button>
 </body>
 </html>
 <?php

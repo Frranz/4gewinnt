@@ -64,6 +64,18 @@ function test(){
 	//gameLoop();
 }
 
+function test2(){
+	request("gameLogic.php?joinGame=1296","GET",null,function(status,xhttp){
+		if(status==200){
+			resJson = JSON.parse(xhttp.responseText);			
+			console.log(resJson);
+			gameLoop(resJson);
+		}else{
+			alert(xhttp.status+": "+xhttp.responseText);
+		}
+	});
+}
+
 function setPiece(playerNumber,col){
 	var boardEl = document.getElementById("boardTable");
 	for(var i = -1;i<boardH-1;i++){

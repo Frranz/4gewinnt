@@ -7,6 +7,6 @@
 </html>
 <?php
 	session_start();
-	$_SESSION['playerId'] = 14;
+	$_SESSION['playerId'] = $_GET['newId'];
 	print_r($_SESSION);
 ?>

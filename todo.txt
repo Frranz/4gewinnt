@@ -1,1 +1,6 @@
-gameLogic.php Datenbankverbindung aufbauen
+setPiece function
+update alle 0,5 Sekunden überdenken => maybe sollte auch der onclick nur den post auslösen und noch nichts einfügen
+
+Gewinnerkennung
+
+maybe nicht zwingend update nötig bei spieler, der am zug ist

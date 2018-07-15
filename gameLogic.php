@@ -58,8 +58,7 @@
 		
 		$gameId = $_REQUEST['joinGame'];
 		$result = joinGame($gameId);
-		
-		
+		echo $result;
 		
 	}else{
 		http_response_code(400);
@@ -125,6 +124,29 @@
 		return json_encode($retJson);
 	}
 	
+	
+	function startGame($gameIdSave){
+		$my_db = mysqli_connect($GLOBALS['servername'],$GLOBALS['username'],$GLOBALS['password'],$GLOBALS['db_name']) or die("db connection konnte nicht hergestellt werden");
+		
+		//get dataset of recently joined game^
+		$getGameQuery = "SELECT * FROM games WHERE gameId=".$gameIdSave;
+		$game = $my_db->query($getGameQuery);
+		if(!$game){
+			die("failed to get game @startGame");
+		}
+		
+		//set nextTurn to id of player1
+		$game = mysqli_fetch_assoc($game);
+		if($game['player1']!="" AND $game['player2']!="" AND $game['nextTurn']==0){
+			$setNextTurnQuery = "UPDATE games SET nextTurn=".$game['player1']." WHERE gameId=".$gameIdSave;
+			$result = $my_db->query($setNextTurnQuery);
+			if(!$result){
+				die("error while setting nextTurn at start of game");
+			}
+		}
+	}
+	
+	
 	function joinGame($gameId){
 		$my_db = mysqli_connect($GLOBALS['servername'],$GLOBALS['username'],$GLOBALS['password'],$GLOBALS['db_name']) or die("db connection konnte nicht hergestellt werden");
 		$gameIdSave = mysqli_real_escape_string($my_db,$gameId);
@@ -140,20 +162,20 @@
 		//check if game is already full
 		$my_db = mysqli_connect($GLOBALS['servername'],$GLOBALS['username'],$GLOBALS['password'],$GLOBALS['db_name']) or die("db connection konnte nicht hergestellt werden");
 		$gameQuery = "SELECT * FROM games WHERE gameId=".$gameIdSave;
-		$result = $my_db->query($gameQuery);
-		$result = mysqli_fetch_assoc($result);
-		if(!$result){
+		$game = $my_db->query($gameQuery);
+		$game = mysqli_fetch_assoc($game);
+		if(!$game){
 			die("game does not exist (anymore)");
 		}
 		
 		//gamei s full
-		if($result['player1']!=0 AND $result['player2']!=0){
+		if($game['player1']!=0 AND $game['player2']!=0){
 			die("game is already full");
 		}
 		
 		$freePlayer;
 		//take free spot
-		if($result['player1']==0){
+		if($game['player1']==0){
 			$freePlayer = "player1";
 		}else{
 			$freePlayer = "player2";
@@ -173,7 +195,17 @@
 			die("failed to update playerspot in game record");
 		}
 		
-		echo "joined game";
+		//prepare return
+		$youreNext = ($game['nextTurn']==$_SESSION['playerId'])?1:-1;
+		$resJson = ["board" => $game['board'],
+					"youreNext" => $youreNext,
+					"gameOver" => false
+		];
 		
+		startGame($gameIdSave);
+		
+		return json_encode($resJson);
 	}
+	
+
 ?>
