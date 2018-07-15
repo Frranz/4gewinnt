@@ -43,10 +43,12 @@ function startGame(){
 	request("gameLogic.php?action=createNewGame","GET",null,function(status,xhttp){
 		if(status==200){
 			console.log("status on startGame: "+status);
-			resJson = xhttp.responseJson;
+			resJson = JSON.parse(xhttp.responseText);
+			console.log(resJson);
+			gameLoop(resJson);
 		}else{
 			startButton.disabled = false;
-			console.log(xhttp);
+			alert(xhttp.status+": "+xhttp.responseText);
 			//was passiert, wenn kein neues spiel erstellt werden kann
 		}
 	});
@@ -54,7 +56,11 @@ function startGame(){
 
 function test(){
 	console.log("Test");
-	document.getElementsByTagName("button")[0].onclick = startGame;
+	request("gameLogic.php?test","GET",null,function(status,xhttp){
+		if(status==200){
+			console.log("alles gut im test");
+		}
+	});
 	//gameLoop();
 }
 
@@ -73,35 +79,6 @@ function setPiece(playerNumber,col){
 		boardJson[i][col] = playerNumber;
 		boardEl.childNodes[i].childNodes[col].firstChild.classList.add("stoneP"+playerNumber);
 		console.log("put piece at column: "+col+"|row:"+i);
-	}
-}
-
-function initializeBoard(interactiveBoard){
-	var boardEl = document.getElementById("boardTable");
-	var row;
-	var td;
-	var stone;
-	for(var i = 0;i<boardJson.length;i++){
-		row = document.createElement("tr");
-		
-		for(var j = 0;j<boardJson[i].length;j++){
-			td = document.createElement("td");
-			if(interactiveBoard){
-				td.onmouseover = mouserOverCol;
-				td.onclick = selectColumn;
-				td.onmouseout = mouseOutCol;
-			}
-			
-			stone = document.createElement("div");
-			stone.classList.add("stone");
-			stone.classList.add("stoneP0");
-			stone.classList.add("stoneP"+boardJson[i][j]);
-			
-			
-			td.appendChild(stone);
-			row.appendChild(td);
-		}
-		boardEl.appendChild(row);
 	}
 }
 
@@ -134,38 +111,79 @@ function selectColumn(e){
 	console.log("spalte: "+index+"wurde geclicked");
 }
 
-function gameLoop(){
-	var runLoop = true;
+function gameLoop(state){
+	var gameState = state;
+	updateBoard(gameState);
 	var loop = setInterval(updateGameState,500)
+}
+
+function updateBoard(gameState){
+	var boardEl = document.getElementById("boardTable");
+	boardEl.innerHTML = "";
+	initializeBoard(gameState);
 }
 
 function updateGameState(){
 	console.log("trying to update gameState");
 	
-	request("gameLogic.php","GET",null,function(status,request){
+	request("gameLogic.php?getGameState","GET",null,function(status,request){
 		if(status == 200){
-			resJson = request.responseJson;
+			console.log(request.responseText);
+			resJson = JSON.parse(request.responseText);
 			board = resJson.board;
 			if(resJson.gameOver){
 				clearInterval(loop);
-				updateBoard(false);
+				updateBoard(resJson);
 				alert(resJson.winner+" hat das Spiel gewonnen");
 			}else{
 				if(resJson.youreNext){
-					updateBoard(true);
+					updateBoard(resJson);
 				}else{
-					updateBoard(true);
+					updateBoard(resJson);
 				}
 			}
-		}	
+		}else{
+			console.log(status+": "+request.responseText);
+		}
 		
 	});
 }
 
-function updateBoard(interactiveBoard){
+function initializeBoard(gameState){
 	var boardEl = document.getElementById("boardTable");
-	boardEl.innerHTML = "";
-	initializeBoard(interactiveBoard);
+	var board = JSON.parse(gameState.board);
+	var nextP = gameState.youreNext;
+	var interactiveBoard = (gameState.youreNext>0)?true:false;
+	var row;
+	var td;
+	var stone;
+	
+	for(var i = 0;i<board.length;i++){
+		row = document.createElement("tr");
+		
+		for(var j = 0;j<board[i].length;j++){
+			td = document.createElement("td");
+			if(interactiveBoard){
+				td.onmouseover = mouserOverCol;
+				td.onclick = selectColumn;
+				td.onmouseout = mouseOutCol;
+				
+				document.getElementById("recentPlayer").innerHTML = "Du bist am Zug";
+			}else{
+				document.getElementById("recentPlayer").innerHTML = "Warten auf Gegner...";
+			}
+			
+			stone = document.createElement("div");
+			stone.classList.add("stone");
+			stone.classList.add("stoneP0");
+			stone.classList.add("stoneP"+board[i][j]);
+			
+			
+			td.appendChild(stone);	
+			row.appendChild(td);
+		}
+		boardEl.appendChild(row);
+	}
 }
 
 function request(url,method,dataIfPost,callback){
