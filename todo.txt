@@ -4,3 +4,5 @@ update alle 0,5 Sekunden überdenken => maybe sollte auch der onclick nur den pos
 Gewinnerkennung
 
 maybe nicht zwingend update nötig bei spieler, der am zug ist
+
+setpiece is get instead of nice practice post

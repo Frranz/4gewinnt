@@ -21,7 +21,7 @@
 		
 	}elseif(isset($_GET['test'])){
 		
-		
+		//currentGameId set to 0 for all players
 		$my_db = mysqli_connect($servername,$username,$password,$db_name) or die("db connection konnte nicht hergestellt werden");
 		$delCurrentGameId = "UPDATE players SET currentGameId=0";
 		$result = $my_db->query($delCurrentGameId);
@@ -31,6 +31,18 @@
 		}
 		
 		
+	}elseif(isset($_GET['test2'])){
+		
+		//delete all games
+		$my_db = mysqli_connect($servername,$username,$password,$db_name) or die("db connection konnte nicht hergestellt werden");
+		$delAllGamesQuery = "DELETE FROM games";
+		$result = $my_db->query($delAllGamesQuery);
+		if(!$result){
+			http_response_code(500);
+			die("error deleting alll games");
+		}
+		
+		echo "games deleted succesfully";
 	}elseif(isset($_GET['getGameState'])){
 		
 		
@@ -60,6 +72,15 @@
 		$result = joinGame($gameId);
 		echo $result;
 		
+	}elseif(isset($_REQUEST['setPiece'])){
+		$col = $_REQUEST['col'];
+		if(!is_numeric($col)){
+			http_response_code(400);
+			die("column not send");
+		}
+		
+		$row = setPiece($col);
+		echo $row;
 	}else{
 		http_response_code(400);
 		echo "action is not set";
@@ -207,5 +228,58 @@
 		return json_encode($resJson);
 	}
 	
+	function setPiece($col){
+		
+		//get game id and current game
+		$gameId = getCurrentGameIdFromPlayerId();
+		if(!$gameId['currentGameId']){
+			http_response_code(500);
+			die("error getting currentGameId of player");
+		}
+	
+		$gameId = $gameId['currentGameId'];
+		$game = getCurrentGame($gameId);
+		if(!$game){
+			http_response_code(500);
+			die("error getting current game of player");
+		}
+		
+		//check if player is on turn
+		if($game['nextTurn'] != $_SESSION['playerId']){
+			http_response_code(409);
+			die("its not your turn");
+		}
+		
+		//set piece on board
+		$board = json_decode($game['board']);
+		for($i = -1;$i<count($board)-1;$i++){
+			if($board[$i+1][$col]!=0){
+				break;
+			}
+		}
+			
+		if($i==-1){
+			http_response_code(409);
+			die("column is full");
+		}
+		
+		//set piece on board
+		if($game['player1']==$_SESSION['playerId']){
+			$board[$i][$col] = 1;
+			$nextTurnPlayer = $game['player2'];
+		}else{
+			$board[$i][$col] = 2;
+			$nextTurnPlayer = $game['player1'];
+		}
+		
+		//save updated board
+		$my_db = mysqli_connect($GLOBALS['servername'],$GLOBALS['username'],$GLOBALS['password'],$GLOBALS['db_name']) or die("db connection konnte nicht hergestellt werden");
+		$updateGameQuery = "UPDATE games SET board='".json_encode($board)."',nextTurn=".$nextTurnPlayer." WHERE gameId=".$game['gameId'];
+		$result = $my_db->query($updateGameQuery);
+		if(!$result){
+			http_response_code(500);
+			die("error udpating game in database");
+		}		
+	}
 
 ?>

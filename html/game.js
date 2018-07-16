@@ -10,6 +10,8 @@ var board = '[[0,0,0,0,0,0,0],' +
 ']';
 	
 var boardJson = JSON.parse(board);
+
+var boardState;
 	
 /*function getBoardState(){
 
@@ -58,14 +60,13 @@ function test(){
 	console.log("Test");
 	request("gameLogic.php?test","GET",null,function(status,xhttp){
 		if(status==200){
-			console.log("alles gut im test");
+			alert("deleted currentGameId for all");
 		}
 	});
-	//gameLoop();
 }
 
 function test2(){
-	request("gameLogic.php?joinGame=1296","GET",null,function(status,xhttp){
+	request("gameLogic.php?joinGame=1309","GET",null,function(status,xhttp){
 		if(status==200){
 			resJson = JSON.parse(xhttp.responseText);			
 			console.log(resJson);
@@ -76,9 +77,27 @@ function test2(){
 	});
 }
 
-function setPiece(playerNumber,col){
+function deleteGames(){
+	request("gameLogic.php?test2","GET",null,function(status,xhttp){
+		if(status==200){
+			alert("alles gelöscht");
+		}else{
+			alert(xhttp.status+": "+xhttp.responseText);
+		}
+	});
+}
+
+function setPiece(col){
 	var boardEl = document.getElementById("boardTable");
-	for(var i = -1;i<boardH-1;i++){
+	request("gameLogic.php?setPiece&col="+col,"GET",null,function(status,xhttp){
+		if(status==200){
+			console.log("piece was set at:"+xhttp.responseText+"|"+col);
+		}else{
+			alert(xhttp.responseText);
+		}
+	})
+	
+/*	for(var i = -1;i<boardH-1;i++){
 		if(boardJson[i+1][col]!=0){
 			break;
 		}
@@ -91,7 +110,7 @@ function setPiece(playerNumber,col){
 		boardJson[i][col] = playerNumber;
 		boardEl.childNodes[i].childNodes[col].firstChild.classList.add("stoneP"+playerNumber);
 		console.log("put piece at column: "+col+"|row:"+i);
-	}
+	}*/
 }
 
 function mouserOverCol(e){
@@ -118,9 +137,10 @@ function mouseOutCol(e){
 
 function selectColumn(e){
 	//index der spalte
-	var index = Array.from(e.currentTarget.parentElement.children).indexOf(e.currentTarget); 
-	setPiece(1,index);
 	console.log("spalte: "+index+"wurde geclicked");
+	
+	var index = Array.from(e.currentTarget.parentElement.children).indexOf(e.currentTarget); 
+	setPiece(index);
 }
 
 function gameLoop(state){
