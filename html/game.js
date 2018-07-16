@@ -11,7 +11,7 @@ var board = '[[0,0,0,0,0,0,0],' +
 	
 var boardJson = JSON.parse(board);
 
-var boardState;
+var oldBoardStateHash;
 	
 /*function getBoardState(){
 
@@ -66,7 +66,7 @@ function test(){
 }
 
 function test2(){
-	request("gameLogic.php?joinGame=1309","GET",null,function(status,xhttp){
+	request("gameLogic.php?joinGame=1311","GET",null,function(status,xhttp){
 		if(status==200){
 			resJson = JSON.parse(xhttp.responseText);			
 			console.log(resJson);
@@ -150,9 +150,14 @@ function gameLoop(state){
 }
 
 function updateBoard(gameState){
-	var boardEl = document.getElementById("boardTable");
-	boardEl.innerHTML = "";
-	initializeBoard(gameState);
+	//check if state of game has changed
+	if(gameState.stateHash != oldBoardStateHash){
+		var boardEl = document.getElementById("boardTable");
+		boardEl.innerHTML = "";
+		initializeBoard(gameState);
+		oldBoardStateHash = gameState.stateHash;
+	}
+
 }
 
 function updateGameState(){
