@@ -58,11 +58,21 @@
 		}
 		
 		$youreNext = ($currentGame['nextTurn']==$_SESSION['playerId'])?1:-1;
+		$gameOver = ($currentGame['gameOver']==0)?False:True;
 		$resJson = ["board" => $currentGame['board'],
 					"youreNext" => $youreNext,
-					"gameOver" => false,
-					"stateHash" => hash("md5",json_encode($currentGame))
+					"gameOver" => $gameOver,
+					"stateHash" => hash("md5",json_encode($currentGame)),
+					"theme" => $currentGame['theme']
 		];
+		
+		if($currentGame['gameOver']){
+			if($currentGame['winner']==$_SESSION['playerId']){
+				$resJson += ["winner" => "du"];
+			}else{
+				$resJson += ["winner" => "nicht du"];
+			}
+		}
 		echo json_encode($resJson);
 		
 		
@@ -120,7 +130,13 @@
 		//add new game to games table
 		$board = json_encode([[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0]]);
 		$playerId = $_SESSION['playerId'];
-		$query = "INSERT INTO `games` (`board`, `player1`, `player2`, `nextTurn`) VALUES ('$board', $playerId, 0, 0)";
+		if(isset($_GET['theme'])){
+			$theme = htmlspecialchars($_GET['theme']);
+		}else{
+			$theme = 1;
+		}
+		
+		$query = "INSERT INTO `games` (`board`, `player1`, `player2`, `nextTurn`,`theme`) VALUES ('$board', $playerId, 0, 0,$theme)";
 		$result = $my_db->query($query);
 		if(!$result){
 			die("insert game into database did not work");
@@ -142,8 +158,10 @@
 			die("failed to update currentGameId in player database");
 		}
 		
-		$retJson = ["board"=>$board,
-		"youreNext"=>-1];
+		$retJson = [	"board"=>$board,
+						"youreNext"=>-1,
+						"stateHash"=>0
+		];
 		return json_encode($retJson);
 	}
 	
@@ -285,7 +303,16 @@
 			die("error udpating game in database");
 		}		
 		
-		checkWin($board,$i,$col,$playerNumber);
+		$gameOver = checkWin($board,$i,$col,$playerNumber);
+		if($gameOver){
+			$gameOverQuery = "UPDATE games SET gameOver=1,nextTurn=0,winner=".$_SESSION['playerId']." WHERE gameId=".$game['gameId'];
+			$result = $my_db->query($gameOverQuery);
+			
+			if(!$result){
+				http_response_code(500);
+				die("error updating gameOver field");
+			}
+		}
 	}
 	
 	function checkWin($board,$row,$col,$playerNumber){
@@ -314,12 +341,12 @@
 				break;
 			}
 			$streakCounter ++;
-			$col--;
+			$col++;
 		}
 		
 		//check if won
 		if($streakCounter>3){
-			die("hasch gewonne durch horizontal");
+			return True;
 		}
 		
 		
@@ -329,7 +356,7 @@
 		$streakCounter = 1;
 		
 		$row++;
-		while($row<boardH){
+		while($row<$boardH){
 			if($board[$row][$col]!=$playerNumber){
 				break;
 			}
@@ -339,7 +366,7 @@
 		
 		//check if won		
 		if($streakCounter>3){
-			die("hasch gewonne durch vertikal");
+			return true;
 		}
 		
 		//check diagonal left up to right down
@@ -360,7 +387,7 @@
 		//check down right
 		$col = $colSave +1;
 		$row = $rowSave +1;
-		while($row<boardH && $col<boardW){
+		while($row<$boardH && $col<$boardW){
 			if($board[$row][$col]!=$playerNumber){
 				break;
 			}
@@ -370,7 +397,7 @@
 		}
 		
 		if($streakCounter>3){
-			die("hasch gewonne durch diagonal");
+			return true;
 		}
 		
 		
@@ -379,7 +406,7 @@
 		$row = $rowSave +1;
 		$streakCounter = 1;
 		
-		while($row<boardH && $col>-1){
+		while($row<$boardH && $col>-1){
 			if($board[$row][$col]!=$playerNumber){
 				break;
 			}
@@ -393,7 +420,7 @@
 		$col = $colSave +1;
 		$row = $rowSave -1;
 		
-		while($row>-1 && $col<boardW){
+		while($row>-1 && $col<$boardW){
 			if($board[$row][$col]!=$playerNumber){
 				break;
 			}
@@ -403,8 +430,12 @@
 		}
 		
 		if($streakCounter>3){
-			die("hasch gewonne durch diagonal");
+			return true;
 		}
+		
+		
+		//no win condition achieved
+		return False;
 	}
 
 ?>

@@ -1,6 +1,9 @@
 var boardH = 6;
 var boardW = 7;
 
+console.log("loaded game.js");
+
+/*
 var board = '[[0,0,0,0,0,0,0],' + 	
 	'[0,0,0,0,0,0,0], '+
 	'[0,0,0,0,0,0,0], '+
@@ -9,9 +12,9 @@ var board = '[[0,0,0,0,0,0,0],' +
 	'[0,0,1,2,1,1,0] '+
 ']';
 	
-var boardJson = JSON.parse(board);
+var boardJson = JSON.parse(board);*/
 
-var oldBoardStateHash;
+var oldBoardStateHash = -1;
 	
 /*function getBoardState(){
 
@@ -40,9 +43,33 @@ var oldBoardStateHash;
 
 function startGame(){
 	var startButton = document.getElementById("startButton");
+	var modal = document.getElementById('myModal');
+	var span = document.getElementsByClassName("close")[0];
 	console.log("startGame");
 	startButton.disabled = true;
-	request("gameLogic.php?action=createNewGame","GET",null,function(status,xhttp){
+	modal.style.display = "block";
+	
+	window.onclick = function(event) {
+		if (event.target == modal) {
+			modal.style.display = "none";
+			startButton.disabled = false;
+		}
+	}
+	
+	span.onclick = function(){
+		modal.style.display = "none";
+		startButton.disabled = false;
+	};
+/*	document.getElementById("themeDialog").showModal();
+	document.getElementById("cancelDialog").onclick = function(){
+		startButton.disabled = false;
+	}*/
+	
+	document.getElementById("submitTheme").onclick = function(e){
+		var selectedTheme = document.querySelector('input[name="theme"]:checked').value;
+		modal.style.display = "none";
+		
+		request("gameLogic.php?action=createNewGame&theme="+selectedTheme,"GET",null,function(status,xhttp){
 		if(status==200){
 			console.log("status on startGame: "+status);
 			resJson = JSON.parse(xhttp.responseText);
@@ -54,6 +81,7 @@ function startGame(){
 			//was passiert, wenn kein neues spiel erstellt werden kann
 		}
 	});
+	}
 }
 
 function test(){
@@ -66,7 +94,7 @@ function test(){
 }
 
 function test2(){
-	request("gameLogic.php?joinGame=1311","GET",null,function(status,xhttp){
+	request("gameLogic.php?joinGame=24","GET",null,function(status,xhttp){
 		if(status==200){
 			resJson = JSON.parse(xhttp.responseText);			
 			console.log(resJson);
@@ -146,7 +174,9 @@ function selectColumn(e){
 function gameLoop(state){
 	var gameState = state;
 	updateBoard(gameState);
-	var loop = setInterval(updateGameState,500)
+	var loop = setInterval(function(){
+		updateGameState(loop);
+	},500);
 }
 
 function updateBoard(gameState){
@@ -160,7 +190,7 @@ function updateBoard(gameState){
 
 }
 
-function updateGameState(){
+function updateGameState(loop){
 	console.log("trying to update gameState");
 	
 	request("gameLogic.php?getGameState","GET",null,function(status,request){
@@ -172,6 +202,9 @@ function updateGameState(){
 				clearInterval(loop);
 				updateBoard(resJson);
 				alert(resJson.winner+" hat das Spiel gewonnen");
+				document.getElementById("recentPlayer").innerHTML = "GameOver!"
+				document.getElementById("startButton").disabled = false;
+			
 			}else{
 				if(resJson.youreNext){
 					updateBoard(resJson);
@@ -213,7 +246,7 @@ function initializeBoard(gameState){
 			stone = document.createElement("div");
 			stone.classList.add("stone");
 			stone.classList.add("stoneP0");
-			stone.classList.add("stoneP"+board[i][j]);
+			stone.classList.add("theme"+gameState.theme+"Pl"+board[i][j]);
 			
 			
 			td.appendChild(stone);	
@@ -221,6 +254,10 @@ function initializeBoard(gameState){
 		}
 		boardEl.appendChild(row);
 	}
+}
+
+function loadDialog(){
+	
 }
 
 function request(url,method,dataIfPost,callback){
