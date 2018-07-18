@@ -94,7 +94,7 @@ function test(){
 }
 
 function test2(){
-	request("gameLogic.php?joinGame=24","GET",null,function(status,xhttp){
+	request("gameLogic.php?joinGame=27","GET",null,function(status,xhttp){
 		if(status==200){
 			resJson = JSON.parse(xhttp.responseText);			
 			console.log(resJson);
@@ -113,6 +113,12 @@ function deleteGames(){
 			alert(xhttp.status+": "+xhttp.responseText);
 		}
 	});
+}
+
+function reloadCurrentGame(){
+	var loop = setInterval(function(){
+			updateGameState(loop);
+	},500);
 }
 
 function setPiece(col){
@@ -201,10 +207,9 @@ function updateGameState(loop){
 			if(resJson.gameOver){
 				clearInterval(loop);
 				updateBoard(resJson);
-				alert(resJson.winner+" hat das Spiel gewonnen");
 				document.getElementById("recentPlayer").innerHTML = "GameOver!"
 				document.getElementById("startButton").disabled = false;
-			
+				alert(resJson.winner+" hat das Spiel gewonnen");
 			}else{
 				if(resJson.youreNext){
 					updateBoard(resJson);

@@ -15,9 +15,10 @@
 			<table id="boardTable" class="boardTable"></table>
 		</div>
 	</div>
-	<button onclick="test();">test</button>
+	<button onclick="test();">clear curentGameId Row</button>
 	<button onclick="test2();">test2</button>
 	<button onclick="deleteGames();">delete allGames</button>
+	<button onclick="reloadCurrentGame();">load currentGame</button>
 	
 	
 	<div id="myModal" class="modal">

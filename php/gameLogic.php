@@ -67,10 +67,11 @@
 		];
 		
 		if($currentGame['gameOver']){
-			if($currentGame['winner']==$_SESSION['playerId']){
-				$resJson += ["winner" => "du"];
+			$winner = getPlayerName($currentGame['winner']);
+			if(!$winner){
+				$resJson += ["winner" => "jemand"];
 			}else{
-				$resJson += ["winner" => "nicht du"];
+				$resJson += ["winner" => $winner['name']];
 			}
 		}
 		echo json_encode($resJson);
@@ -116,6 +117,19 @@
 		if(!$my_db->connect_error){
 			$query = "SELECT * FROM games WHERE gameId=".$gameId;
 			$result = $my_db->query($query);
+			$result = mysqli_fetch_assoc($result);
+			return $result;
+		}else{
+			echo "database connection not available";
+			return null;
+		}
+	}
+	
+	function getPlayerName($playerId){
+		$my_db = mysqli_connect($GLOBALS['servername'],$GLOBALS['username'],$GLOBALS['password'],$GLOBALS['db_name']) or die("db connection konnte nicht hergestellt werden");
+		if(!$my_db->connect_error){
+			$getNameQuery = "SELECT name FROM players WHERE playerId=".$playerId;
+			$result = $my_db->query($getNameQuery);
 			$result = mysqli_fetch_assoc($result);
 			return $result;
 		}else{
